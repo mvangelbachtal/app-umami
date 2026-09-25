@@ -1,0 +1,54 @@
+---
+services:
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    expose:
+      - 3000
+    environment:
+      - DATABASE_URL
+      - DATABASE_TYPE
+      - APP_SECRET
+      - VIRTUAL_HOST
+      - VIRTUAL_PORT
+      - LETSENCRYPT_HOST
+      - LETSENCRYPT_EMAIL
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - proxy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://localhost:3000/api/heartbeat"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    volumes:
+      - db:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      default:
+      grafana:
+        aliases:
+          - umami_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  db:
+
+networks:
+  proxy:
+    external: true
+  grafana:
+    external: true
+

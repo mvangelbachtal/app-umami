@@ -5,13 +5,12 @@ services:
     expose:
       - 3000
     environment:
-      - DATABASE_URL
-      - DATABASE_TYPE
-      - APP_SECRET
-      - VIRTUAL_HOST
-      - VIRTUAL_PORT
-      - LETSENCRYPT_HOST
-      - LETSENCRYPT_EMAIL
+      DATABASE_URL: postgresql://${UMAMI_POSTGRES_USER:-umami}:${UMAMI_POSTGRES_PASSWORD:?Set this in the local secrets.env file}@db:5432/${UMAMI_POSTGRES_DB:-umami}
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${UMAMI_APP_SECRET:?Set this in the local secrets.env file}
+      VIRTUAL_HOST: umami.mv-angelbachtal.de
+      VIRTUAL_PORT: "3000"
+      LETSENCRYPT_HOST: umami.mv-angelbachtal.de
     depends_on:
       db:
         condition: service_healthy
@@ -27,9 +26,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_POSTGRES_PASSWORD:?Set this in the local secrets.env file}
     volumes:
       - db:/var/lib/postgresql/data
     restart: unless-stopped
